@@ -16,8 +16,93 @@
 	<body>
 		<div class="reveal">
 			<div class="slides">
-				<section>Slide 1</section>
-				<section>Slide 2</section>
+				<section>
+					<p>Dynamodb</p>
+				</section>
+				<section>
+					<p>É um db gerenciado pela aws</p>
+					<p>Orientado a documento ou chave valor</p>
+				</section>
+				<section>
+					<p>Capacity Unit - dimensionar e cobrar</p>
+					<p>Read Capaciy Unit (RCU) - 4Kb</p>
+					<p>Write Capacity Unit (WCU) - 1Kb</p>
+				</section>
+				<section>
+					<p style="font-size: 55px;">Partition</p>
+					<ul>
+						<li>10GB</li>
+						<li>3000RCU</li>
+						<li>1000WCU</li>
+					</ul>
+				</section>
+				<section>
+					<section>
+						<p>Alocação de partições</p>
+						<p>Round(RCU(PROV/3000) + WCU(PROV/1000))</p>
+					</section>
+					<section class="fragments">
+						<p>Exemplo:</p>
+						<p class="fragment fade-left">Capacidade provisionada: 650RCU e 650WCU</p>
+						<p class="fragment fade-left">Round(RCU(650/3000) + WCU(650/1000))</p>
+						<p class="fragment fade-left">Round(0.22 + 0.65)</p>
+						<p class="fragment fade-left">Round(0.87) => 1 <span class="fragment fade-in">Partition</span> </p>
+					</section>
+				</section>
+				<section>
+					<ul>
+						Partition Key </br>
+						Sort Key
+						<ul>
+							<li>Retornos mais rápidos</li>
+							<li>Queries mais ricas (>, <, ==, between)</li>
+						</ul>
+					</ul>
+				</section>
+				<section>
+					<p>GSI</p>
+					<ul>
+						<li>Criada nova partição</li>
+						<li>Possivel definir nova Partition Key e nova Sort Key</li>
+						<li>Deve ser configurado RCU e WCU</li>
+					</ul>
+				</section>
+				<section>
+					<p>DAX</p>
+					<ul>
+						<li>Cache em memória</li>
+						<li>Latência em micro segundos</li>
+						<li>Reduz o custo RCU e WCU</li>
+						<li>Recomendado para apps com alto volume de leitura</li>
+						<li>Não recomendado para apps com alto volume de gravação</li>
+					</ul>
+				</section>
+				<section>JDK 2</section>
+				<section>Vantagens</section>
+				<section>
+					<p>Non-blocking I/O</p>
+					<pre>
+						<code>
+DynamoDBAsyncClient client = DynamoDBAsyncClient.create();
+CompletableFuture response = client
+	.listTables(ListTablesRequest.builder()
+					.limit(5)
+					.build());
+						</code>
+					</pre>
+				</section>
+				<section>
+					<p>Pluggable HTTP layer</p>
+					<pre>
+						<code>			
+<dependency>
+   <artifactId>aws-http-client-apache</artifactId>
+   <groupId>software.amazon.awssdk</groupId>
+   <version>2.15.35</version>
+</dependency>					
+						</code>
+					</pre>
+				</section>
 			</div>
 		</div>
 
