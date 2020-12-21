@@ -43,9 +43,24 @@
 					<p>Suporte a transações ACID</p>
 				</section>
 				<section>
+					<section>
 					<p>Capacity Unit - dimensionar e cobrar</p>
 					<p>Read Capaciy Unit (RCU) - 4Kb</p>
 					<p>Write Capacity Unit (WCU) - 1Kb</p>
+					</section>
+					<section>
+						<p>Exemplo:</p>
+						<p style="text-align: left;">
+							tamanho : 0,5Kb </br>
+							Strongly Consistent </br>
+							0.5kb / 4kb = 0.125 → arredondamento = 1 RCU (a dynamodb sempre arredonda para cima para o número inteiro) </br>
+							Eventually Consistent </br>
+							0.5Kb / 1Kb → 0.5 = arredondamento = 1 RCU </br>
+							Write </br>
+							0.5Kb / 1kb  → 0.5 = arredondamento = 1WCU
+
+						</p>
+					</section>
 				</section>
 				<section>
 					<section>
@@ -96,7 +111,7 @@
 						<li>Não recomendado para apps com alto volume de gravação</li>
 					</ul>
 				</section>
-				<section>JDK 2</section>
+				<section>SDK 2</section>
 				<section>Vantagens</section>
 				<section>
 					<p>Non-blocking I/O</p>
@@ -174,7 +189,7 @@ DynamoDBClient clientTwo = DynamoDBClient.builder()
 					<ul>
 						<li>Interfaces</li>
 						<li>Imutabilidade (toBuilder)</li>
-						<li>Agrupamento de regions na classe Region - (JDK1 - Region, Regions, s3.Region, RegionUtils, etc)</li>
+						<li>Agrupamento de regions na classe Region - (SDK1 - Region, Regions, s3.Region, RegionUtils, etc)</li>
 					</ul>
 				</section>
 				<section>
@@ -246,7 +261,7 @@ customerTable.scan();
 				</section>
 				</section>
 				<section>
-					<p>show me to code</p>
+					<p>show me the code</p>
 				</section>
 				<section>
 					<img src="image/thank-you.gif" alt="" srcset="" width="700px">
