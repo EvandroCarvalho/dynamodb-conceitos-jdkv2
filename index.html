@@ -4,11 +4,11 @@
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
-		<title>reveal.js</title>
+		<title>Dynamodb - jdk2</title>
 
 		<link rel="stylesheet" href="dist/reset.css">
 		<link rel="stylesheet" href="dist/reveal.css">
-		<link rel="stylesheet" href="dist/theme/black.css" id="theme">
+		<link rel="stylesheet" href="dist/theme/serif.css" id="theme">
 
 		<!-- Theme used for syntax highlighted code -->
 		<link rel="stylesheet" href="plugin/highlight/monokai.css" id="highlight-theme">
@@ -17,24 +17,35 @@
 		<div class="reveal">
 			<div class="slides">
 				<section>
-					<p>Dynamodb</p>
+					<p>Amazon Dynamodb</p>
+					<img src="image/DynamoDB.png" alt="" srcset="">
 				</section>
 				<section>
-					<p>É um db gerenciado pela aws</p>
-					<p>Orientado a documento ou chave valor</p>
+					<p>Tópicos</p>
+					<ul>
+						<li>Capacity Unit</li>
+						<li>Partition</li>
+						<li>GSI</li>
+						<li>DAX</li>
+						<li>JDK2
+							<ul>
+								<li>Vantagens</li>
+								<li>Mudanças</li>
+								<li>DynamoDbEnhancedClient</li>
+							</ul>
+						</li>
+					</ul>
+				</section>
+				<section>
+					<p>É um db totalmente gerenciado pela aws.</p>
+					<p>Orientado a documento e chave valor.</p>
+					<p>Pode processar 10 trilhões de solicitações por dia (Performance em grande escala)</p>
+					<p>Suporte a transações ACID</p>
 				</section>
 				<section>
 					<p>Capacity Unit - dimensionar e cobrar</p>
 					<p>Read Capaciy Unit (RCU) - 4Kb</p>
 					<p>Write Capacity Unit (WCU) - 1Kb</p>
-				</section>
-				<section>
-					<p style="font-size: 55px;">Partition</p>
-					<ul>
-						<li>10GB</li>
-						<li>3000RCU</li>
-						<li>1000WCU</li>
-					</ul>
 				</section>
 				<section>
 					<section>
@@ -50,12 +61,20 @@
 					</section>
 				</section>
 				<section>
+					<p style="font-size: 55px;">Partition</p>
+					<ul>
+						<li>10GB</li>
+						<li>3000RCU</li>
+						<li>1000WCU</li>
+					</ul>
+				</section>
+				<section>
 					<ul>
 						Partition Key </br>
 						Sort Key
 						<ul>
 							<li>Retornos mais rápidos</li>
-							<li>Queries mais ricas (>, <, ==, between)</li>
+							<li>Queries mais ricas (>, <, =, between)</li>
 						</ul>
 					</ul>
 				</section>
@@ -81,18 +100,57 @@
 				<section>Vantagens</section>
 				<section>
 					<p>Non-blocking I/O</p>
-					<pre>
+					<section>
+						<p>Agora oferece suporte I/O verdadeiramente sem bloqueio.</p>
+					</section>
+					<section>
+					<pre style="margin-left: -100px; width: 1200px; height: 500px;">
 						<code>
+// Creates a default async client with credentials and regions loaded from the environment
 DynamoDBAsyncClient client = DynamoDBAsyncClient.create();
-CompletableFuture response = client
-	.listTables(ListTablesRequest.builder()
+CompletableFuture &ltListTablesResponse> response = client.listTables(ListTablesRequest.builder()
 					.limit(5)
 					.build());
+// Map the response to another CompletableFuture containing just the table names
+CompletableFuture&ltList&ltString>> tableNames = response.thenApply(ListTablesResponse::tableNames);
+// When future is complete (either successfully or in error) handle the response
+tableNames.whenComplete((tables, err) -> {
+	if (tables != null) {
+		tables.forEach(System.out::println);
+	} else {
+		// Handle error
+		err.printStackTrace();
+	}
+});
 						</code>
 					</pre>
 				</section>
+				</section>
 				<section>
-					<p>Pluggable HTTP layer</p>
+					<p>Camada HTTP plugável</p>
+					<section>
+						<ul style="margin-top: 50px;">
+							<li>Definição de configurações de HTTP - limite de socket, configuração de proxy, etc...</li>
+							<li>
+								Compatilhamento de clientes HTTP
+								<pre>
+									<code>
+DynamoDBClient clientOne = DynamoDBClient.builder()
+	.httpConfiguration(ClientHttpConfiguration.builder()
+					.httpClient(sharedClient)
+					.build())
+				.build();
+DynamoDBClient clientTwo = DynamoDBClient.builder()
+	.httpConfiguration(ClientHttpConfiguration.builder()
+					.httpClient(sharedClient)
+					.build())
+					.build();
+									</code>
+								</pre>
+							</li>
+						</ul>
+					</section>
+					<section>
 					<pre>
 						<code>			
 <dependency>
@@ -101,7 +159,121 @@ CompletableFuture response = client
    <version>2.15.35</version>
 </dependency>					
 						</code>
+						<code>			
+<dependency>
+   <artifactId>netty-nio-client</artifactId>
+   <groupId>software.amazon.awssdk</groupId>
+   <version>2.15.35</version>
+</dependency>					
+						</code>
+				</pre>
+				</section>
+				</section>
+				<section>
+					<p>Mudança na API</p>
+					<ul>
+						<li>Interfaces</li>
+						<li>Imutabilidade (toBuilder)</li>
+						<li>Agrupamento de regions na classe Region - (JDK1 - Region, Regions, s3.Region, RegionUtils, etc)</li>
+					</ul>
+				</section>
+				<section>
+					<p>DynamoDbEnhancedClient</p>
+					<section>
+					<pre>
+						<code>
+<dependency>
+	<groupId>software.amazon.awssdk</groupId>
+	<artifactId>dynamodb-enhanced</artifactId>
+	<version>2.15.35</version>
+</dependency>
+						</code>
 					</pre>
+				</section>
+				<section>
+					<ul>
+						<li>Operações do cliente mais claras</li>
+						<li>Suporte assincrono</li>
+						<li>Cold-start mais rápido que o DynamoDBMapper</li>
+					</ul>
+				</section>
+				<section>
+					<p style="font-size: 25px;">Defini as configurações configurações padrões</p>
+					<pre style="width: 900px;">
+						<code>
+DynamoDbEnhancedClient enhancedClient = DynamoDbEnhancedClient.create();
+						</code>
+					</pre>
+					<p style="font-size: 25px;">Defini as configurações usando um DynamoDbClient</p>
+					<pre style="width: 900px;">
+						<code>
+DynamoDbEnhancedClient enhancedClient = DynamoDbEnhancedClient.builder()
+					.dynamoDbClient(dynamoDbClient)
+					.build();
+						</code>
+					</pre>
+				</section>
+				<section>
+					<p style="font-size: 25px;">DynamoDbTable executa operações a nível da tabela. 
+					</br>TableSchema representa o modelo e estrutura do registro, constroi uma lista de atributos com base nos getters e setters</p>
+					<pre style="width: 900px;">
+						<code>
+DynamoDbTable&ltCustomer> customerTable = enhancedClient
+	.table("customers_table", TableSchema.fromBean(Customer.class));
+						</code>
+					</pre>
+					<pre style="width: 900px;">
+						<code>
+DynamoDbIndex&ltCustomer> customerTableIndex = enhancedClient
+	.table("customers_table", TableSchema.fromBean(Customer.class))
+	.index("index-name");
+						</code>
+					</pre>
+				</section>
+				<section>
+					<p style="font-size: 25px;">Operações</p>
+					<pre>
+						<code>
+customerTable.getItem(customerToGet);
+customerTable.putItem(newCustomer);
+customerTable.deleteItem(customerToDelete);
+customerTable.updateItem(...);
+customerTable.query(...);
+customerTable.scan();
+...
+						</code>
+					</pre>
+				</section>
+				</section>
+				<section>
+					<p>show me to code</p>
+				</section>
+				<section>
+					<img src="image/thank-you.gif" alt="" srcset="" width="700px">
+				</section>
+				<section>
+					<p>Referências</p>
+					<a href="https://docs.aws.amazon.com/sdk-for-java/latest/developer-guide/home.html">Developer guide - AWS SDK for Java 2.x</a>
+					<a href="https://aws.amazon.com/pt/blogs/developer/aws-sdk-for-java-2-0-developer-preview/">AWS SDK for Java 2.0 – Developer Preview</a>
+					<a href="https://aws.amazon.com/pt/blogs/developer/introducing-enhanced-dynamodb-client-in-the-aws-sdk-for-java-v2/">Introducing enhanced DynamoDB client in the AWS SDK for Java v2</a>
+				</section>
+				<section>
+					<p style="align-items: center; justify-content: center; display: flex">
+						<img src="image/gmail.png" alt="gmail" height="40" width="40"
+							style="border: none !important; box-shadow: none !important; margin-right: 10px">
+						evandrovjunior@gmail.com
+					</p>
+					<p style="align-items: center; justify-content: center; display: flex">
+						<img src="image/linkedin.png" height="40" width="40"
+							style="border: none !important; box-shadow: none !important; margin-right: 10px">
+						evandrovcj
+					</p>
+					<p style="align-items: center; justify-content: center; display: flex">
+						<img src="image/twitter.png" height="40" width="40"
+							style="border: none !important; box-shadow: none !important; margin-right: 10px">
+						@CarvEvandro
+					</p>
+					<h3 style="color:#043dab">Perguntas?</h3>
 				</section>
 			</div>
 		</div>
